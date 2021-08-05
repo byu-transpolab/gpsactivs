@@ -50,3 +50,17 @@ trajectories <- gps %>%
 
 
 usethis::use_data(trajectories, overwrite = TRUE)
+
+
+#' UCI DATA ============
+
+uci <- read_csv("data-raw/ucsb/go_track_trackspoints.csv") %>%
+  filter(longitude > -37.2) %>%
+  filter(latitude < -10.8) %>%
+  st_as_sf(coords = c("longitude", "latitude"), crs = 4327)
+
+# leaflet(uci) %>%
+#   addProviderTiles(providers$OpenStreetMap) %>%
+#   addCircles()
+
+usethis::use_data(uci, overwrite = TRUE)
