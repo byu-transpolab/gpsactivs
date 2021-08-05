@@ -14,5 +14,6 @@ Depends:
 Imports: 
     magrittr,
     lubridate,
-    sf
+    sf,
+    dbscan
 RoxygenNote: 7.1.1
