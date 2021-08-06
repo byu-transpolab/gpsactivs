@@ -1,9 +1,18 @@
 #' Determine stop locations in trajectory data via DBSCAN-TE
 #'
-#' @param trajectory A simple features collection representing a single
-#'   trajectory.
-#' @param eps distance threshold for defining clusters
-#' @param minpts minimum number of points in a cluster
+#' @param trajectory A simple features collection of points representing a
+#'   single trajectory (i.e. person, day). MUST have a `dttm` column called
+#'   "timestamp" representing the time of GPS point.
+#' @param eps distance threshold for defining clusters. Should be provided
+#'   in the same units as the trajectory projection (usually meters). DBSCAN input.
+#' @param minpts minimum number of points in a cluster. DBSCAN input.
+#' @param delta_t  time threshold (seconds): a gap of this length within a
+#'   spatial cluster will split the cluster into two potential activities.
+#'   An activity must also be at least this long.
+#' @param entr_t entropy threshold: the entropy of a cluster is a function of
+#'   the chaotic movement between points in a cluster. Clusters with higher
+#'   entropy are more likely to be activities; this parameter will exclude
+#'   potential activities below this threshold
 #'
 #' @details Implements the method described in Gong, L.,
 #'   Yamamoto, T., &#38; Morikawa, T. (2018). Identification of activity stop
@@ -11,14 +20,16 @@
 #'   vector machines. Transportation Research Procedia, 32,
 #'   146–154. \url{https://doi.org/10.1016/J.TRPRO.2018.10.028}
 #'
+#'   Note: the SVM is not (yet) implemented. The entropy calculation and
+#'   heuristics seem to get us almost all the way there.
+#'
 #' @examples
-#' trajectory <- trajectories %>%  filter(id == "131") %>%
-#'   mutate(day = day(localtime)) %>% filter(day == 16)
 #'
 #'
 #'
 #' @export
-dbscan_te <- function(trajectory, eps = 25, minpts = 4, delta_t = 120) {
+dbscan_te <- function(trajectory, eps = 25, minpts = 4, delta_t = 300,
+                      entr_t = 1.75) {
 
   # execute dbscan on trajectory points ======
   cl <- do_dbscan(trajectory, eps, minpts)
@@ -26,15 +37,10 @@ dbscan_te <- function(trajectory, eps = 25, minpts = 4, delta_t = 120) {
 
 
   # check temporal sequence and entropy constraints ======
-  check_clusters(trajectory, delta_t, minpts)
+  activities <- check_clusters(trajectory, delta_t, minpts, entr_t)
 
-
-
-
-
-
+  # TODO
   # SVM classifier into activity / non-activity =========
-
 
 
 }
@@ -62,8 +68,10 @@ do_dbscan <- function(trajectory, eps, minpts) {
 #'
 #' @inheritParams dbscan_te
 #'
-#' @importFrom dplyr filter bind_rows
+#' @importFrom dplyr filter bind_rows group_by mutate
 #' @importFrom tibble as_tibble
+#' @importFrom tidyr nest
+#' @importFrom purrr map map_dbl map_int
 #'
 check_clusters <- function(trajectory, delta_t, minpts, entr_t){
 
@@ -151,4 +159,11 @@ get_cluster_entropy <- function(d) {
 get_min <- function(d) min(d$timestamp)
 get_max <- function(d) max(d$timestamp)
 
+get_meanx <- function(d){
+  mean(sf::st_coordinates(sf::st_as_sf(d))[, 1])
+}
+
+get_meany <- function(d){
+  mean(sf::st_coordinates(sf::st_as_sf(d))[, 2])
+}
 
