@@ -1,6 +1,6 @@
 Package: gpsactivs
 Type: Package
-Title: Extract Activities and Semantic locations from GPS Trace Data
+Title: Extract Activities and Semantic Locations from GPS Trace Data
 Version: 0.1.0
 Authors@R: c(
   person("Gregory", "Macfarlane",  email = "gregmacfarlane@gmail.com",  role = c("aut", "cre")) )
@@ -18,5 +18,13 @@ Imports:
     lubridate,
     sf,
     dbscan,
-    purrr
+    purrr,
+    stringr,
+    dplyr,
+    tibble,
+    tidyr
 RoxygenNote: 7.1.1
+Suggests: 
+    rmarkdown,
+    knitr
+VignetteBuilder: knitr
