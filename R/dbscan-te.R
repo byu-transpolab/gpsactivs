@@ -112,7 +112,7 @@ check_clusters <- function(trajectory, delta_t, minpts, entr_t){
     ) %>%
 
     # only keep clusters over entropy threshold
-    dplyr::filter(entr > entr_t) %>%
+    dplyr::filter(entr > entr_t, elapsed > delta_t) %>%
     dplyr::arrange(start) %>%
     dplyr::select(cluster, start, end, elapsed, x, y, entr)
 
