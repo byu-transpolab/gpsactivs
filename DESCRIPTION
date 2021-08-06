@@ -1,12 +1,14 @@
 Package: gpsactivs
 Type: Package
-Title: What the Package Does (Title Case)
+Title: Extract Activities and Semantic locations from GPS Trace Data
 Version: 0.1.0
-Author: Who wrote it
-Maintainer: The package maintainer <yourself@somewhere.net>
-Description: More about what it does (maybe more than one line)
-    Use four spaces when indenting paragraphs within the Description.
-License: What license is it under?
+Authors@R: c(
+  person("Gregory", "Macfarlane",  email = "gregmacfarlane@gmail.com",  role = c("aut", "cre")) )
+Description: GPS trajectories are increasingly common in transportation science,
+    and understanding when people are stopped and when they are traveling is not 
+    a simple task. This package implements modern data science techniques 
+    to glean activities from the raw GPS data.
+License: Apache License (>= 2)
 Encoding: UTF-8
 LazyData: true
 Depends: 
@@ -15,5 +17,6 @@ Imports:
     magrittr,
     lubridate,
     sf,
-    dbscan
+    dbscan,
+    purrr
 RoxygenNote: 7.1.1
