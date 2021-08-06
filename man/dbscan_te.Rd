@@ -25,6 +25,10 @@ the chaotic movement between points in a cluster. Clusters with higher
 entropy are more likely to be activities; this parameter will exclude
 potential activities below this threshold}
 }
+\value{
+A simple features collection of points with the start and end
+  time of each activity, the estimated cluster entropy (for debugging / calibrating)
+}
 \description{
 Determine stop locations in trajectory data via DBSCAN-TE
 }

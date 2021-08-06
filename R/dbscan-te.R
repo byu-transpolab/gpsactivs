@@ -14,6 +14,9 @@
 #'   entropy are more likely to be activities; this parameter will exclude
 #'   potential activities below this threshold
 #'
+#' @return A simple features collection of points with the start and end
+#'   time of each activity, the estimated cluster entropy (for debugging / calibrating)
+#'
 #' @details Implements the method described in Gong, L.,
 #'   Yamamoto, T., &#38; Morikawa, T. (2018). Identification of activity stop
 #'   locations in GPS trajectories by DBSCAN-TE method combined with support
@@ -28,6 +31,9 @@
 #'
 #'
 #' @export
+#'
+#' @importFrom sf st_as_sf st_crs
+#'
 dbscan_te <- function(trajectory, eps = 25, minpts = 4, delta_t = 300,
                       entr_t = 1.75) {
 
@@ -42,6 +48,9 @@ dbscan_te <- function(trajectory, eps = 25, minpts = 4, delta_t = 300,
   # TODO
   # SVM classifier into activity / non-activity =========
 
+
+  activities %>%
+    sf::st_as_sf(coords = c("x", "y"), crs = sf::st_crs(trajectory))
 
 }
 
