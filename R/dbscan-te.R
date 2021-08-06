@@ -65,7 +65,7 @@ do_dbscan <- function(trajectory, eps, minpts) {
 #' @importFrom dplyr filter bind_rows
 #' @importFrom tibble as_tibble
 #'
-check_clusters <- function(trajectory, delta_t, minpts){
+check_clusters <- function(trajectory, delta_t, minpts, entr_t){
 
   # put all cluster points into separate chunks, then
   # recursively split clusters if they have gaps in their
@@ -86,11 +86,11 @@ check_clusters <- function(trajectory, delta_t, minpts){
     mutate(
       min_time = map(data, get_min)[[1]],
       max_time = map(data, get_max)[[1]],
-      n = map_int(data, nrow)
-    )
-
-
-
+      n = map_int(data, nrow),
+      ent = map_dbl(data, get_cluster_entropy)
+    ) %>%
+    arrange(min_time) %>%
+    filter(ent)
 
 
 
@@ -99,7 +99,8 @@ check_clusters <- function(trajectory, delta_t, minpts){
 
 #' Split clusters based on a delta_t
 #'
-#' @details This is a recursive algorithm
+#' @details This is a recursive algorithm that divides spatially
+#'   defined clusters based on gaps in their timeline.
 #'
 #' @importFrom dplyr mutate lag cumsum
 #' @importFrom stringr str_c
@@ -121,11 +122,33 @@ split_cluster <- function(cluster, delta_t){
   dplyr::bind_rows(a)
 }
 
+#' Calculate the entropy of cluster rays
+#'
+#' @param d a tibble with a point geometry column
+#' @return The cluster entropy
+#'
+#' @details Equation 1 in Gong, et al. (2018)
+#'
+#' @importFrom sf st_coordinates st_as_sf
+#'
+get_cluster_entropy <- function(d) {
+  # get coordinates of points (should be in order)
+  xy <- sf::st_coordinates(sf::st_as_sf(d))
+
+  # compute distance between consecutive points
+  dist = sqrt(diff(xy[, 1])^2 + diff(xy[, 2])^2)
+
+  # compute angle in radians (from -pi to pi)
+  angles <- atan2(diff(xy[, 1]) , diff(xy[, 2]))
+  a_group <- cut(angles[dist > 0], breaks = seq(-pi, pi, by = 2 * pi / 8))
+
+  # count how many rays are in each octant of the circle
+  nd <- table(a_group)
+
+  - sum(nd / sum(nd) * log(nd / sum(nd)), na.rm = TRUE)
+}
 
 get_min <- function(d) min(d$timestamp)
 get_max <- function(d) max(d$timestamp)
 
 
-get_cluster_entropy <- function() {
-
-}
