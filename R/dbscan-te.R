@@ -18,7 +18,7 @@
 #'
 #'
 #' @export
-dbscan_te <- function(trajectory, eps = 25, minpts = 4) {
+dbscan_te <- function(trajectory, eps = 25, minpts = 4, delta_t = 120) {
 
   # execute dbscan on trajectory points ======
   cl <- do_dbscan(trajectory, eps, minpts)
@@ -26,7 +26,6 @@ dbscan_te <- function(trajectory, eps = 25, minpts = 4) {
 
 
   # check temporal sequence constraint ======
-
   check_tempsequence()
 
 
@@ -62,15 +61,37 @@ do_dbscan <- function(trajectory, eps, minpts) {
 #'
 #' @inheritParams dbscan_te
 #'
-check_tempsequence <- function(trajectory){
-  trajectory %>%
+#' @importFrom dplyr filter bind_rows
+#' @importFrom tibble as_tibble
+#'
+check_tempsequence <- function(trajectory, delta_t){
+  # put all cluster points into separate chunks, then
+  # recursively split clusters if they have gaps in their
+  # timeline greater than delta
+  all_clusters <- trajectory %>%
     dplyr::filter(cluster > 0) %>%
-    group_by(cluster) %>%
-    mutate(sequence = localtime - lag(localtime)) %>%
-    View()
+    tibble::as_tibble() %>%
+    split(.$cluster) %>%
+    lapply(function(cluster) split_cluster(cluster, delta_t))  %>%
+    dplyr::bind_rows()
 
 
-    dplyr::mutate(jump = cluster - dplyr::lead(cluster)) %>%
-    arrange(jump)
 }
 
+
+split_cluster <- function(cluster, delta_t){
+  a <- cluster %>%
+    mutate(
+      diff = timestamp - lag(timestamp, default = timestamp[1]),
+      big_gap = ifelse(diff > delta_t, T, F),
+      gaps = cumsum(big_gap),
+      cluster = str_c(cluster, gaps, sep = ".")
+    )  %>%
+    split(.$cluster)
+
+  if(length(a) > 1){
+    a <- lapply(a, function(x) split_cluster(x, delta_t))
+  }
+
+  bind_rows(a)
+}
