@@ -96,7 +96,9 @@ caps <- lapply(files_in_folder, function(x){
 
 caps_tr <- caps %>%
   filter(date(date) == as_date("2021-03-05")) %>%
-  mutate(min = str_pad(str_c(hour(timestamp), minute(timestamp)), width = 4, pad = "0")) %>%
+  arrange(timestamp) %>%
+  mutate(min = str_c(str_pad(hour(timestamp), width = 2, pad = "0"),
+                     str_pad(minute(timestamp), width = 2, pad = "0"))) %>%
   group_by(min) %>% slice_sample(n = 10) %>%
   st_as_sf(coords = c("lon", "lat"), crs = 4327) %>%
   st_transform(32612)
