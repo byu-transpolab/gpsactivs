@@ -120,7 +120,7 @@ check_clusters <- function(trajectory, delta_t, minpts, entr_t){
 #'
 split_cluster <- function(cluster, delta_t){
   a <- cluster %>%
-    dlyr::mutate(
+    dplyr::mutate(
       diff = timestamp - dplyr::lag(timestamp, default = timestamp[1]),
       big_gap = ifelse(diff > delta_t, T, F),
       gaps = cumsum(big_gap),
