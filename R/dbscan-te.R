@@ -88,19 +88,24 @@ check_clusters <- function(trajectory, delta_t, minpts, entr_t){
 
   # get clusters in the right order with the right number of points
   all_clusters %>%
-    group_by(cluster) %>%
-    nest() %>%
+    dplyr::group_by(cluster) %>%
+    tidyr::nest() %>%
 
-    mutate(
-      min_time = map(data, get_min)[[1]],
-      max_time = map(data, get_max)[[1]],
-      n = map_int(data, nrow),
-      ent = map_dbl(data, get_cluster_entropy)
+    # find elapsed time and entropy for all clusters
+    dplyr::mutate(
+      start = purrr::map(data, get_min)[[1]],
+      end = purrr::map(data, get_max)[[1]],
+      x = purrr::map_dbl(data, get_meanx),
+      y = purrr::map_dbl(data, get_meany),
+      elapsed = end - start,
+      n = purrr::map_int(data, nrow),
+      entr = purrr::map_dbl(data, get_cluster_entropy)
     ) %>%
-    arrange(min_time) %>%
-    filter(ent)
 
-
+    # only keep clusters over entropy threshold
+    dplyr::filter(entr > entr_t) %>%
+    dplyr::arrange(start) %>%
+    dplyr::select(cluster, start, end, elapsed, x, y, entr)
 
 }
 
@@ -110,7 +115,7 @@ check_clusters <- function(trajectory, delta_t, minpts, entr_t){
 #' @details This is a recursive algorithm that divides spatially
 #'   defined clusters based on gaps in their timeline.
 #'
-#' @importFrom dplyr mutate lag cumsum
+#' @importFrom dplyr mutate lag
 #' @importFrom stringr str_c
 #'
 split_cluster <- function(cluster, delta_t){
@@ -118,7 +123,7 @@ split_cluster <- function(cluster, delta_t){
     dlyr::mutate(
       diff = timestamp - dplyr::lag(timestamp, default = timestamp[1]),
       big_gap = ifelse(diff > delta_t, T, F),
-      gaps = dplyr::cumsum(big_gap),
+      gaps = cumsum(big_gap),
       cluster = stringr::str_c(cluster, gaps, sep = ".")
     )  %>%
     split(.$cluster)
