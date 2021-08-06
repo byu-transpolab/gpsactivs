@@ -4,6 +4,8 @@
 # gpsactivs
 
 <!-- badges: start -->
+
+[![R-CMD-check](https://github.com/byu-transpolab/gpsactivs/workflows/R-CMD-check/badge.svg)](https://github.com/byu-transpolab/gpsactivs/actions)
 <!-- badges: end -->
 
 The goal of gpsactivs is to provide algorithms for developing semantic
