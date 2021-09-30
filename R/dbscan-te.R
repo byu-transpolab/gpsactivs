@@ -39,6 +39,10 @@ dbscan_te <- function(trajectory, eps = 25, minpts = 4, delta_t = 300,
 
   # execute dbscan on trajectory points ======
   cl <- do_dbscan(trajectory, eps, minpts)
+  if( all( cl$cluster == 0)){
+    warning("No clusters found for trajectory starting", trajectory$timestamp[1])
+    return("no clusters found")
+  }
   trajectory$cluster <- cl$cluster
 
 
